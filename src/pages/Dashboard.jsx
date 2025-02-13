@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Pencil, Trash2 } from "lucide-react"; 
+import { Pencil, Trash2 } from "lucide-react";
 import SubmitButton from "@/components/submit-button";
 
 export default function Dashboard() {
@@ -8,21 +7,14 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [editUser, setEditUser] = useState(null);
   const [editedName, setEditedName] = useState("");
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    fetchUsers();
+  }, []);
 
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    fetchUsers(token);
-  }, [navigate]);
-
-  const fetchUsers = async (token) => {
+  const fetchUsers = async () => {
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch("http://localhost:5000/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -33,18 +25,16 @@ export default function Dashboard() {
 
       const data = await response.json();
       setUsers(data);
-      setLoading(false);
     } catch (error) {
       console.error("Error:", error);
-      localStorage.removeItem("token");
-      navigate("/login");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (email) => {
-    const token = localStorage.getItem("token");
-
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(`http://localhost:5000/users/delete?email=${email}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
@@ -66,9 +56,8 @@ export default function Dashboard() {
   };
 
   const handleSave = async () => {
-    const token = localStorage.getItem("token");
-
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(`http://localhost:5000/users/update`, {
         method: "PUT",
         headers: {
