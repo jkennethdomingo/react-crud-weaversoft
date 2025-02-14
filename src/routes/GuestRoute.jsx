@@ -1,12 +1,9 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "@/auth";
+import { useAuth } from "@/hooks/useAuth";
 
-const GuestRoute = ({ redirectPath = "/dashboard" }) => {
+const GuestRoute = ({redirectPath = "/dashboard"}) => {
   const { isAuthenticated } = useAuth();
-  if (isAuthenticated) {
-    return <Navigate to={redirectPath} replace />;
-  }
-  return <Outlet />;
-};
+  return isAuthenticated ? <Navigate to={redirectPath} replace/> : <Outlet/>;
+}
 
 export default GuestRoute;

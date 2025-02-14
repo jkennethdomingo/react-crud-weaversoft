@@ -1,30 +1,48 @@
-import { Routes, Route } from "react-router-dom";
-import Layout from "@/layout/Layout";
-import Home from "@/pages/Home";
-import SignIn from "@/pages/SignIn";
-import SignUp from "@/pages/SignUp";
-import Dashboard from "@/pages/Dashboard";
-import ProtectedRoute from "@/routes/ProtectedRoute";
-import GuestRoute from "@/routes/GuestRoute";
-import { useAuth } from "@/auth";
+import { Routes, Route } from "react-router-dom"
 
-function AppRoutes() {
+import { Layout } from "@/layout"
 
-  return (
+import { Login, LoginToolpad, Register } from "@/pages/auth"
+import { Dashboard } from "@/pages/admin"
+import { Home } from "@/pages/guest"
+import { NotFound } from "@/pages/misc"
+
+import ProtectedRoute from './ProtectedRoute'
+import GuestRoute from './GuestRoute'
+
+const AppRoutes = () => {
+  const guestRoutes = [
+    { path: "/", element: <Home/> },
+    { path: "login", element: <Login/> },
+    { path: "login-toolpad", element: <LoginToolpad/> },
+    { path: "register", element: <Register/> },
+  ];
+
+  const protectedRoutes = [
+    { path: "dashboard", element: <Dashboard/> }
+  ];
+  
+  return(
     <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Home />} />
-        
-        {/* Guest Routes - Prevent access if logged in */}
-        <Route element={<GuestRoute />}> 
-          <Route path="login" element={<SignIn />} />
-          <Route path="register" element={<SignUp />} />
+      <Route element={<Layout/>}>
+
+        {/* Guest Routes */}
+        <Route element={<GuestRoute/>}>
+          {guestRoutes.map(({ path, element }) => (
+            <Route key={path} path={path} element={element}/>
+          ))}
         </Route>
 
-        {/* Protected Route for Dashboard */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="dashboard" element={<Dashboard />} />
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute/>}>
+          {protectedRoutes.map(({path, element}) => (
+            <Route key={path} path={path} element={element}/>
+          ))}
         </Route>
+
+        {/*Error Pages*/}
+        <Route path="*" element={<NotFound/>}/>
+        
       </Route>
     </Routes>
   );
