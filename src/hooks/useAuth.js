@@ -5,19 +5,43 @@ export const useAuth = (storageType = "localStorage") => {
   const storage = storageType === "sessionStorage" ? sessionStorage : localStorage;
   const navigate = useNavigate();
 
+  // Helper function to decode token and check expiration
+  const parseToken = (token) => {
+    try {
+      const decoded = JSON.parse(atob(token.split(".")[1]));
+      if (decoded.exp * 1000 < Date.now()) {
+        return null; // Token expired
+      }
+      return decoded;
+    } catch (error) {
+      return null; // Invalid token
+    }
+  };
+
   // Initial state
-  const [isAuthenticated, setIsAuthenticated] = useState(() => !!storage.getItem("token"));
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const token = storage.getItem("token");
+    return !!parseToken(token);
+  });
+
   const [user, setUser] = useState(() => {
     const token = storage.getItem("token");
-    return token ? JSON.parse(atob(token.split(".")[1])) : null;
+    return parseToken(token);
   });
 
   const checkAuth = useMemo(
     () => () => {
       try {
         const token = storage.getItem("token");
-        setIsAuthenticated(!!token);
-        setUser(token ? JSON.parse(atob(token.split(".")[1])) : null); 
+        const userData = parseToken(token);
+        
+        setIsAuthenticated(!!userData);
+        setUser(userData);
+
+        // If token is expired, remove it
+        if (!userData) {
+          storage.removeItem("token");
+        }
       } catch (error) {
         console.error("Error checking auth:", error);
         setIsAuthenticated(false);
@@ -39,6 +63,9 @@ export const useAuth = (storageType = "localStorage") => {
   const login = useCallback(
     (token) => {
       try {
+        if (!parseToken(token)) {
+          throw new Error("Invalid or expired token");
+        }
         storage.setItem("token", token);
         checkAuth();
         window.dispatchEvent(new Event("storage"));
